@@ -11,6 +11,7 @@
                 <field name="end_date"/>
                 <field name="seats"/>
                 <field name="state"/>
+                <field name="duration_days" readonly="1"/>
             </list>
         </field>
     </record>
@@ -58,6 +59,7 @@
                         <group>
                             <field name="start_date"/>
                             <field name="end_date"/>
+                            <field name="duration_days" readonly="1"/>
                         </group>
                     </group>
 

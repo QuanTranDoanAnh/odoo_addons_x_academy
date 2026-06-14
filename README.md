@@ -44,6 +44,8 @@ custom_addons/
 
 ### Level 2 — Module nghiệp vụ cơ bản
 
+Link: [Level 2](README-Level-2.md)
+
 Thêm fields: `Char`, `Text`, `Date`, `Integer`, `Selection`, `Boolean`, `Monetary`.
 Thêm workflow button: Draft → Confirmed → Done → Cancelled.
 
