@@ -1,0 +1,123 @@
+<odoo>
+    <record id="x_academy_session_view_list" model="ir.ui.view">
+        <field name="name">x.academy.session.view.list</field>
+        <field name="model">x.academy.session</field>
+        <field name="arch" type="xml">
+            <list string="Sessions">
+                <field name="name"/>
+                <field name="course_id"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="instructor_id"/>
+                <field name="attendee_count"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="x_academy_session_view_form" model="ir.ui.view">
+        <field name="name">x.academy.session.view.form</field>
+        <field name="model">x.academy.session</field>
+        <field name="arch" type="xml">
+            <form string="Session">
+                <header>
+                    <button name="action_confirm"
+                            string="Confirm"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+
+                    <button name="action_done"
+                            string="Mark as Done"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'confirmed'"/>
+
+                    <button name="action_cancel"
+                            string="Cancel"
+                            type="object"
+                            invisible="state in ['done', 'cancelled']"/>
+
+                    <button name="action_reset_to_draft"
+                            string="Reset to Draft"
+                            type="object"
+                            invisible="state == 'draft'"/>
+
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,confirmed,done"/>
+                </header>
+
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="course_id"/>
+                            <field name="instructor_id"/>
+                        </group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="attendee_count" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Attendees">
+                            <field name="attendee_ids" widget="many2many_tags"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="x_academy_session_view_calendar" model="ir.ui.view">
+        <field name="name">x.academy.session.view.calendar</field>
+        <field name="model">x.academy.session</field>
+        <field name="arch" type="xml">
+            <calendar string="Sessions"
+                      date_start="date_start"
+                      date_stop="date_end"
+                      color="course_id">
+                <field name="name"/>
+                <field name="course_id"/>
+                <field name="instructor_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="x_academy_session_view_search" model="ir.ui.view">
+        <field name="name">x.academy.session.view.search</field>
+        <field name="model">x.academy.session</field>
+        <field name="arch" type="xml">
+            <search string="Search Sessions">
+                <field name="name"/>
+                <field name="course_id"/>
+                <field name="instructor_id"/>
+                <field name="state"/>
+
+                <filter name="filter_confirmed"
+                        string="Confirmed"
+                        domain="[('state', '=', 'confirmed')]"/>
+
+                <separator/>
+
+                <filter name="group_by_course"
+                        string="Group by Course"
+                        context="{'group_by': 'course_id'}"/>
+
+                <filter name="group_by_instructor"
+                        string="Group by Instructor"
+                        context="{'group_by': 'instructor_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="x_academy_session_action" model="ir.actions.act_window">
+        <field name="name">Sessions</field>
+        <field name="res_model">x.academy.session</field>
+        <field name="view_mode">list,form,calendar</field>
+        <field name="search_view_id" ref="x_academy_session_view_search"/>
+    </record>
+</odoo>

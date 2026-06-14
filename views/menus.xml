@@ -1,0 +1,23 @@
+<odoo>
+    <menuitem id="x_academy_root_menu"
+              name="Academy"
+              sequence="10"/>
+
+    <menuitem id="x_academy_course_menu"
+              name="Courses"
+              parent="x_academy_root_menu"
+              action="x_academy_course_action"
+              sequence="10"/>
+
+    <menuitem id="x_academy_session_menu"
+              name="Sessions"
+              parent="x_academy_root_menu"
+              action="x_academy_session_action"
+              sequence="20"/>
+
+    <menuitem id="x_academy_enrollment_menu"
+              name="Enrollments"
+              parent="x_academy_root_menu"
+              action="x_academy_enrollment_action"
+              sequence="30"/>
+</odoo>

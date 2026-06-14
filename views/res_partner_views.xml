@@ -1,0 +1,44 @@
+<odoo>
+    <record id="x_academy_res_partner_view_form_inherit" model="ir.ui.view">
+        <field name="name">res.partner.view.form.inherit.x.academy</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet//notebook" position="inside">
+                <page string="Academy">
+                    <group>
+                        <group string="Academy Roles">
+                            <field name="is_academy_student"/>
+                            <field name="is_academy_instructor"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Enrollments" invisible="not is_academy_student">
+                            <field name="academy_enrollment_ids">
+                                <list>
+                                    <field name="course_id"/>
+                                    <field name="session_id"/>
+                                    <field name="enrollment_date"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Instructor Sessions" invisible="not is_academy_instructor">
+                            <field name="academy_instructor_session_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="course_id"/>
+                                    <field name="date_start"/>
+                                    <field name="date_end"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

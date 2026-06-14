@@ -1,4 +1,3 @@
-
 <odoo>
     <record id="x_academy_course_view_list" model="ir.ui.view">
         <field name="name">x.academy.course.view.list</field>
@@ -7,11 +6,12 @@
             <list string="Courses">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
+                <field name="code"/>
                 <field name="start_date"/>
                 <field name="end_date"/>
                 <field name="seats"/>
+                <field name="confirmed_enrollment_count"/>
                 <field name="state"/>
-                <field name="duration_days" readonly="1"/>
             </list>
         </field>
     </record>
@@ -50,11 +50,33 @@
                 </header>
 
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_sessions"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-calendar">
+                            <field name="session_count"
+                                   widget="statinfo"
+                                   string="Sessions"/>
+                        </button>
+
+                        <button name="action_view_enrollments"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-users">
+                            <field name="confirmed_enrollment_count"
+                                   widget="statinfo"
+                                   string="Enrollments"/>
+                        </button>
+                    </div>
+
                     <group>
                         <group>
                             <field name="name"/>
+                            <field name="code"/>
                             <field name="active"/>
                             <field name="seats"/>
+                            <field name="confirmed_enrollment_count" readonly="1"/>
                         </group>
                         <group>
                             <field name="start_date"/>
@@ -66,6 +88,30 @@
                     <notebook>
                         <page string="Description">
                             <field name="description"/>
+                        </page>
+
+                        <page string="Sessions">
+                            <field name="session_ids" context="{'default_course_id': id}">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="date_start"/>
+                                    <field name="date_end"/>
+                                    <field name="instructor_id"/>
+                                    <field name="attendee_count"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Enrollments">
+                            <field name="enrollment_ids" context="{'default_course_id': id}">
+                                <list editable="bottom">
+                                    <field name="student_id"/>
+                                    <field name="session_id"/>
+                                    <field name="enrollment_date"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
                         </page>
                     </notebook>
                 </sheet>
@@ -79,10 +125,19 @@
         <field name="arch" type="xml">
             <search string="Search Courses">
                 <field name="name"/>
+                <field name="code"/>
                 <field name="state"/>
+
                 <filter name="filter_confirmed"
                         string="Confirmed"
                         domain="[('state', '=', 'confirmed')]"/>
+
+                <filter name="filter_done"
+                        string="Done"
+                        domain="[('state', '=', 'done')]"/>
+
+                <separator/>
+
                 <filter name="group_by_state"
                         string="Group by Status"
                         context="{'group_by': 'state'}"/>
@@ -96,14 +151,4 @@
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="x_academy_course_view_search"/>
     </record>
-
-    <menuitem id="x_academy_root_menu"
-              name="Academy"
-              sequence="10"/>
-
-    <menuitem id="x_academy_course_menu"
-              name="Courses"
-              parent="x_academy_root_menu"
-              action="x_academy_course_action"
-              sequence="10"/>
 </odoo>
