@@ -1346,7 +1346,7 @@ Sau bài này, bạn đã nắm được phần rất quan trọng trong Odoo mo
 | Workflow button   | Draft, Confirmed, Done, Cancelled                               |
 | Constraint        | Không cho enrollment trùng, session phải thuộc đúng course      |
 
-Bài tiếp theo nên là **Level 4 — Business Logic chuyên sâu**: thêm sequence tự động cho Course/Enrollment, override `create/write/unlink`, computed fields nâng cao, onchange nâng cao, rule không cho sửa/xóa khi record đã Confirmed/Done, và kiểm soát capacity theo course/session.
+Bài tiếp theo nên là **[Level 4 — Business Logic chuyên sâu](README-Level-4.md)**: thêm sequence tự động cho Course/Enrollment, override `create/write/unlink`, computed fields nâng cao, onchange nâng cao, rule không cho sửa/xóa khi record đã Confirmed/Done, và kiểm soát capacity theo course/session.
 
 [1]: https://www.odoo.com/documentation/19.0/developer/tutorials/server_framework_101/03_basicmodel.html?utm_source=chatgpt.com "Chapter 3: Models And Basic Fields"
 [2]: https://www.odoo.com/documentation/19.0/applications/studio/fields.html?utm_source=chatgpt.com "Fields and widgets — Odoo 19.0 documentation"

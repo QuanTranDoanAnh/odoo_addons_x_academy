@@ -66,6 +66,8 @@ Bạn học `Many2one`, `One2many`, `Many2many`, domain, context.
 
 ### Level 4 — Logic nghiệp vụ
 
+Link: [Level 4](README-Level-4.md)
+
 Thêm:
 
 * computed fields

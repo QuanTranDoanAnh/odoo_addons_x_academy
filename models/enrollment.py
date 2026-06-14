@@ -1,5 +1,5 @@
-from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo import Command, api, fields, models, _
+from odoo.exceptions import UserError, ValidationError
 
 
 class XAcademyEnrollment(models.Model):
@@ -17,8 +17,9 @@ class XAcademyEnrollment(models.Model):
 
     name = fields.Char(
         string="Enrollment Reference",
-        compute="_compute_name",
-        store=True,
+        default="New",
+        readonly=True,
+        copy=False,
     )
 
     course_id = fields.Many2one(
@@ -47,6 +48,18 @@ class XAcademyEnrollment(models.Model):
         required=True,
     )
 
+    student_email = fields.Char(
+        string="Student Email",
+        related="student_id.email",
+        readonly=True,
+    )
+
+    course_state = fields.Selection(
+        related="course_id.state",
+        string="Course Status",
+        readonly=True,
+    )
+
     state = fields.Selection(
         selection=[
             ("draft", "Draft"),
@@ -56,14 +69,59 @@ class XAcademyEnrollment(models.Model):
         ],
         default="draft",
         required=True,
+        copy=False,
     )
 
-    @api.depends("student_id", "course_id")
-    def _compute_name(self):
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("name", "New") == "New":
+                vals["name"] = (
+                    self.env["ir.sequence"].next_by_code("x.academy.enrollment")
+                    or "New"
+                )
+        return super().create(vals_list)
+
+    def write(self, vals):
+        protected_fields = {
+            "course_id",
+            "student_id",
+        }
+
+        changing_protected_fields = bool(protected_fields.intersection(vals.keys()))
+
         for record in self:
-            student_name = record.student_id.name or "No Student"
-            course_name = record.course_id.name or "No Course"
-            record.name = f"{student_name} - {course_name}"
+            if changing_protected_fields and record.state in ["confirmed", "done", "cancelled"]:
+                raise UserError(
+                    _(
+                        "You cannot change course or student after the enrollment "
+                        "has been confirmed, done, or cancelled."
+                    )
+                )
+
+            if "session_id" in vals and record.state in ["done", "cancelled"]:
+                raise UserError(
+                    _("You cannot change session after the enrollment is done or cancelled.")
+                )
+
+        if vals.get("state") == "confirmed":
+            for record in self:
+                record._validate_before_confirm()
+
+        result = super().write(vals)
+
+        if vals.get("state") == "confirmed":
+            self._sync_student_to_session_attendees()
+
+        return result
+
+    def unlink(self):
+        for record in self:
+            if record.state not in ["draft", "cancelled"]:
+                raise UserError(
+                    _("You can only delete an enrollment in Draft or Cancelled status.")
+                )
+        return super().unlink()
 
     @api.onchange("course_id")
     def _onchange_course_id(self):
@@ -75,29 +133,112 @@ class XAcademyEnrollment(models.Model):
     def _check_session_belongs_to_course(self):
         for record in self:
             if record.session_id and record.session_id.course_id != record.course_id:
-                raise ValidationError("The selected session must belong to the selected course.")
+                raise ValidationError(
+                    _("The selected session must belong to the selected course.")
+                )
+
+    def _validate_before_confirm(self):
+        for record in self:
+            if record.course_id.state != "confirmed":
+                raise ValidationError(
+                    _("You can only confirm enrollment for a confirmed course.")
+                )
+
+            record._validate_course_capacity()
+            record._validate_session_capacity()
+
+    def _validate_course_capacity(self):
+        for record in self:
+            course = record.course_id
+
+            if not course.seats:
+                return
+
+            confirmed_count = self.search_count(
+                [
+                    ("course_id", "=", course.id),
+                    ("state", "=", "confirmed"),
+                    ("id", "!=", record.id),
+                ]
+            )
+
+            if confirmed_count >= course.seats:
+                raise ValidationError(
+                    _(
+                        "No seats available for this course. "
+                        "Course: %(course)s. Seats: %(seats)s."
+                    )
+                    % {
+                        "course": course.display_name,
+                        "seats": course.seats,
+                    }
+                )
+
+    def _validate_session_capacity(self):
+        for record in self:
+            session = record.session_id
+
+            if not session:
+                return
+
+            capacity = session._get_effective_capacity()
+
+            if not capacity:
+                return
+
+            confirmed_count = self.search_count(
+                [
+                    ("session_id", "=", session.id),
+                    ("state", "=", "confirmed"),
+                    ("id", "!=", record.id),
+                ]
+            )
+
+            if confirmed_count >= capacity:
+                raise ValidationError(
+                    _(
+                        "No seats available for this session. "
+                        "Session: %(session)s. Capacity: %(capacity)s."
+                    )
+                    % {
+                        "session": session.display_name,
+                        "capacity": capacity,
+                    }
+                )
+
+    def _sync_student_to_session_attendees(self):
+        for record in self:
+            if record.state == "confirmed" and record.session_id and record.student_id:
+                record.session_id.write(
+                    {"attendee_ids": [Command.link(record.student_id.id)]}
+                )
+
+    def _remove_student_from_session_attendees(self):
+        for record in self:
+            if record.session_id and record.student_id:
+                record.session_id.write(
+                    {"attendee_ids": [Command.unlink(record.student_id.id)]}
+                )
 
     def action_confirm(self):
-        for record in self:
-            if record.course_id.state not in ["confirmed", "done"]:
-                raise ValidationError("You can only confirm enrollment for a confirmed course.")
-
-            if (
-                record.course_id.seats
-                and record.course_id.confirmed_enrollment_count >= record.course_id.seats
-            ):
-                raise ValidationError("No seats available for this course.")
-
-            record.state = "confirmed"
+        self.write({"state": "confirmed"})
 
     def action_done(self):
         for record in self:
-            record.state = "done"
+            if record.state != "confirmed":
+                raise UserError(_("Only confirmed enrollments can be marked as done."))
+        self.write({"state": "done"})
 
     def action_cancel(self):
         for record in self:
-            record.state = "cancelled"
+            if record.state == "done":
+                raise UserError(_("You cannot cancel an enrollment that is already done."))
+
+        self._remove_student_from_session_attendees()
+        self.write({"state": "cancelled"})
 
     def action_reset_to_draft(self):
         for record in self:
-            record.state = "draft"
+            if record.state == "done":
+                raise UserError(_("You cannot reset a done enrollment to draft."))
+        self.write({"state": "draft"})

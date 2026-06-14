@@ -9,7 +9,9 @@
                 <field name="date_start"/>
                 <field name="date_end"/>
                 <field name="instructor_id"/>
+                <field name="max_attendees"/>
                 <field name="attendee_count"/>
+                <field name="available_seats"/>
                 <field name="state"/>
             </list>
         </field>
@@ -43,22 +45,29 @@
                             type="object"
                             invisible="state == 'draft'"/>
 
+                    <button name="action_fill_attendees_from_enrollments"
+                            string="Fill Attendees"
+                            type="object"
+                            invisible="state == 'done'"/>
+
                     <field name="state"
-                           widget="statusbar"
-                           statusbar_visible="draft,confirmed,done"/>
+                        widget="statusbar"
+                        statusbar_visible="draft,confirmed,done"/>
                 </header>
 
                 <sheet>
                     <group>
                         <group>
-                            <field name="name"/>
-                            <field name="course_id"/>
-                            <field name="instructor_id"/>
+                            <field name="name" readonly="state != 'draft'"/>
+                            <field name="course_id" readonly="state != 'draft'"/>
+                            <field name="instructor_id" readonly="state != 'draft'"/>
                         </group>
                         <group>
-                            <field name="date_start"/>
-                            <field name="date_end"/>
+                            <field name="date_start" readonly="state != 'draft'"/>
+                            <field name="date_end" readonly="state != 'draft'"/>
+                            <field name="max_attendees" readonly="state == 'done'"/>
                             <field name="attendee_count" readonly="1"/>
+                            <field name="available_seats" readonly="1"/>
                         </group>
                     </group>
 

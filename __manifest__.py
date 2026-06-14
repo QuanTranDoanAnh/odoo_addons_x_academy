@@ -1,4 +1,3 @@
-
 {
     "name": "X Academy",
     "summary": "Academy management module for Odoo 19 learning",
@@ -10,6 +9,7 @@
     "data": [
         "security/security.xml",
         "security/ir.model.access.csv",
+        "data/sequence.xml",
         "views/course_views.xml",
         "views/session_views.xml",
         "views/enrollment_views.xml",
