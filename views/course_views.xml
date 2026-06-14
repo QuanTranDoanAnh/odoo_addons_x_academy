@@ -1,0 +1,107 @@
+
+<odoo>
+    <record id="x_academy_course_view_list" model="ir.ui.view">
+        <field name="name">x.academy.course.view.list</field>
+        <field name="model">x.academy.course</field>
+        <field name="arch" type="xml">
+            <list string="Courses">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="seats"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="x_academy_course_view_form" model="ir.ui.view">
+        <field name="name">x.academy.course.view.form</field>
+        <field name="model">x.academy.course</field>
+        <field name="arch" type="xml">
+            <form string="Course">
+                <header>
+                    <button name="action_confirm"
+                            string="Confirm"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+
+                    <button name="action_done"
+                            string="Mark as Done"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'confirmed'"/>
+
+                    <button name="action_cancel"
+                            string="Cancel"
+                            type="object"
+                            invisible="state in ['done', 'cancelled']"/>
+
+                    <button name="action_reset_to_draft"
+                            string="Reset to Draft"
+                            type="object"
+                            invisible="state == 'draft'"/>
+
+                    <field name="state"
+                           widget="statusbar"
+                           statusbar_visible="draft,confirmed,done"/>
+                </header>
+
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="active"/>
+                            <field name="seats"/>
+                        </group>
+                        <group>
+                            <field name="start_date"/>
+                            <field name="end_date"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Description">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="x_academy_course_view_search" model="ir.ui.view">
+        <field name="name">x.academy.course.view.search</field>
+        <field name="model">x.academy.course</field>
+        <field name="arch" type="xml">
+            <search string="Search Courses">
+                <field name="name"/>
+                <field name="state"/>
+                <filter name="filter_confirmed"
+                        string="Confirmed"
+                        domain="[('state', '=', 'confirmed')]"/>
+                <filter name="group_by_state"
+                        string="Group by Status"
+                        context="{'group_by': 'state'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="x_academy_course_action" model="ir.actions.act_window">
+        <field name="name">Courses</field>
+        <field name="res_model">x.academy.course</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="x_academy_course_view_search"/>
+    </record>
+
+    <menuitem id="x_academy_root_menu"
+              name="Academy"
+              sequence="10"/>
+
+    <menuitem id="x_academy_course_menu"
+              name="Courses"
+              parent="x_academy_root_menu"
+              action="x_academy_course_action"
+              sequence="10"/>
+</odoo>
